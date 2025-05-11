@@ -1,0 +1,10 @@
+Payment Breakdown:
+
+Flag-off/Mobilization - 100,000
+
+After Deployment and Go-live - 50,000
+
+Mobile App initialization - 50,000
+
+Go-live - 100,000
+

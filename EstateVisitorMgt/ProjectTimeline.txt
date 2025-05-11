@@ -1,0 +1,64 @@
+Timeline (Total - 21 Days)
+
+Week 1: Planning & Core API Development
+
+*Day 1-2: Project Setup & Planning
+
+-Define API structure, endpoints, and database schema
+
+-Set up Github repository
+
+*Day 3-5: Backend Development - Core Functionalities
+
+-Implement Authentication & Role-based Access Control
+
+-Develop Admin functionalities (User management, Gate & Street Management, Reports)
+
+-Set up Principal user & Dependant management
+
+*Day 6-7: Backend Development - Visitor Management & Security Operations
+
+-Implement Visitor code generation & expiration logic
+
+-Implement Security user verification system
+
+-API Testing & Debugging
+
+Week 2: Frontend Development & API Integration
+
+*Day 8-10: UI Development - Admin & Security Dashboard
+
+-Develop Admin Panel (User & Estate Management, Reports)
+
+-Develop Security User Interface (Visitor code validation, Logs)
+
+*Day 11-12: UI Development - Principal & Dependant Interfaces
+
+-Develop Principal User Dashboard (Dependant & Visitor Code Management)
+
+-Develop Dependant User Interface
+
+*Day 13-14: API Integration & Frontend Testing
+
+-Connect UI with API
+
+-Conduct basic functionality tests
+
+Week 3: Testing, Deployment & Training
+*Day 15-16: Full System Testing & Debugging
+
+-Test all user flows
+
+-Fix critical bugs & optimize
+
+*Day 17-18: Deployment to Staging & User Training
+
+-Deploy for internal testing
+
+*Day 19-20: Final Adjustments & Production Deployment
+
+-Final security review & optimizations
+
+-Deploy to live production
+
+* Day 21: Monitoring & Handover
