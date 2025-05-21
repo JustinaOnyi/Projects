@@ -4,12 +4,25 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 
 const AddDeleteUsers = () => {
   const [users, setUsers] = useState([
-    { id: 1, name: 'John Doe', email: 'john@example.com', role: 'Security', category: 'visitor', address: '123 Road', phone: '08012345678' },
-    { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'Admin', category: 'dependent', address: '456 Avenue', phone: '08123456789' },
+    { id: 1, name: 'John Doe', email: 'john@example.com', role: 'Security', category: 'principal', address: '123 Road', phone: '08012345678', registeredby:'loginPerson' },
+    { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'Admin', category: 'dependent', address: '456 Avenue', phone: '08123456789', registeredby:'loginPerson' },
   ]);
   
-  const [searchTerm, setSearchTerm] = useState('');
+
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    role: '',
+    category: '',
+    address: '',
+    phone: '',
+    street: '',
+    streetNumber: ''
+  });
   
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedRole, setSelectedRole] = useState('');
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 5;
@@ -69,39 +82,102 @@ const AddDeleteUsers = () => {
     }
   };
 
-  const handleUserFormSubmit = (e) => {
-    e.preventDefault();
-    const name = e.target.name.value;
-    const email = e.target.email.value;
-    const role = e.target.role.value;
-    const category = e.target.category.value;
-    const address = e.target.address.value;
-    const phone = e.target.phone.value;
+
+
+  const handleBulkUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
   
-    if (name && email && role && category && address && phone) {
-      if (currentUser) {
-        // Edit user
-        setUsers(prev =>
-          prev.map(user =>
-            user.id === currentUser.id
-              ? { ...user, name, email, role, category, address, phone }
-              : user
-          )
-        );
-      } else {
-        // Add new user
-        setUsers(prev => [...prev, { id: Date.now(), name, email, role, category, address, phone }]);
-      }
-      setShowModal(false);
-      setCurrentUser(null);
-    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target.result;
+      const lines = text.trim().split('\n');
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+  
+      const newUsers = lines.slice(1).map(line => {
+        const values = line.split(',').map(val => val.trim());
+        const user = {};
+        headers.forEach((header, index) => {
+          user[header] = values[index] || '';
+        });
+  
+        return {
+          id: Date.now() + Math.random(), // Ensure unique ID
+          name: user.name || '',
+          email: user.email || '',
+          role: user.role || '',
+          category: user.category || '',
+          address: user.address || '',
+          phone: user.phone || '',
+          registeredby: 'bulkUpload'
+        };
+      });
+  
+      setUsers(prev => [...prev, ...newUsers]);
+    };
+  
+    reader.readAsText(file);
   };
   
 
+  const handleUserFormSubmit = (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const name = form.name.value;
+    const email = form.email.value;
+    const role = form.role.value;
+    const category = form.category.value;
+    const phone = form.phone.value;
+  
+    let address = form.address?.value || '';
+    let street = '';
+    let streetNumber = '';
+  
+    if (role === 'Principal User') {
+      street = form.street.value;
+      streetNumber = form.streetNumber.value;
+      address = `${street} ${streetNumber}`; // Optional: combine if you still need a full address
+    }
+  
+    const newUser = {
+      id: currentUser?.id || Date.now(),
+      name,
+      email,
+      role,
+      category,
+      address,
+      street,
+      streetNumber,
+      phone,
+      registeredby: currentUser ? currentUser.registeredby : 'form',
+    };
+  
+    if (currentUser) {
+      setUsers(prev =>
+        prev.map(user => (user.id === currentUser.id ? { ...user, ...newUser } : user))
+      );
+    } else {
+      setUsers(prev => [...prev, newUser]);
+    }
+  
+    setShowModal(false);
+    setCurrentUser(null);
+  };
+  
+  
+
+  // const openModal = (user = null) => {
+  //   setCurrentUser(user);
+  //   setShowModal(true);
+  // };
+
   const openModal = (user = null) => {
     setCurrentUser(user);
+    setSelectedRole(user?.role || '');
     setShowModal(true);
   };
+  
+  
 
   return (
     <div className="container mt-4">
@@ -112,10 +188,10 @@ const AddDeleteUsers = () => {
         </button>
       </div>
 
-      <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 gap-2">
+      {/* <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 gap-2">
         <input
           type="text"
-          className="form-control w-100 w-md-50"
+          className="form-control w-50 w-md-50"
           placeholder="Search users..."
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
@@ -123,7 +199,42 @@ const AddDeleteUsers = () => {
         <button className="btn btn-outline-primary" onClick={exportToCSV}>
           <i className="fas fa-file-export me-2"></i>Export CSV
         </button>
-      </div>
+      </div> */}
+
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 gap-2">
+          <input
+            type="text"
+            className="form-control w-100 w-md-25"
+            placeholder="Search users..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+          />
+
+          <div className="d-flex gap-2">
+            {/* <input
+              type="file"
+              accept=".csv"
+              className="form-control form-control-sm"
+              onChange={handleBulkUpload}
+              title="Upload CSV"
+            /> */}
+
+          <div className="input-group input-group-sm">
+            <label className="input-group-text bg-warning" htmlFor="csvUpload">Upload CSV</label>
+            <input
+              type="file"
+              id="csvUpload"
+              accept=".csv"
+              className="form-control btn btn-outline-warning"
+              onChange={handleBulkUpload}
+            />
+          </div>
+            <button className="btn btn-outline-primary" onClick={exportToCSV}>
+              <i className="fas fa-file-export me-2"></i>Export CSV
+            </button>
+          </div>
+        </div>
+
 
       <div className="table-responsive">
         <table className="table table-bordered bg-white">
@@ -135,9 +246,14 @@ const AddDeleteUsers = () => {
               <th onClick={() => sortUsers('email')}>
                 Email {sortDirection.field === 'email' && (sortDirection.direction === 'asc' ? '↓' : '↑')}
               </th>
-              <th onClick={() => sortUsers('role')}>
+              {/* <th onClick={() => sortUsers('role')}>
                 Role {sortDirection.field === 'role' && (sortDirection.direction === 'asc' ? '↓' : '↑')}
-              </th>
+              </th> */}
+              {!users.some(u => u.role === 'principal') && (
+                <th onClick={() => sortUsers('role')}>
+                  Role {sortDirection.field === 'role' && (sortDirection.direction === 'asc' ? '↓' : '↑')}
+                </th>
+              )}
               <th onClick={() => sortUsers('address')}>
                 Address {sortDirection.field === 'address' && (sortDirection.direction === 'asc' ? '↓' : '↑')}
               </th>
@@ -147,6 +263,7 @@ const AddDeleteUsers = () => {
               <th onClick={() => sortUsers('category')}>
                Category {sortDirection.field === 'category' && (sortDirection.direction === 'asc' ? '↓' : '↑')}
               </th>
+              <th>Registered By</th>
               <th style={{ width: '120px' }}>Actions</th>
             </tr>
           </thead>
@@ -156,10 +273,12 @@ const AddDeleteUsers = () => {
                 <tr key={user.id}>
                   <td>{user.name}</td>
                   <td>{user.email}</td>
-                  <td>{user.role}</td>
+                  {/* <td>{user.role}</td> */}
+                  {user.role !== 'principal' && <td>{user.role}</td>}
                   <td>{user.address}</td>
                   <td>{user.phone}</td>
                   <td>{user.category}</td>
+                  <td>{user.registeredby}</td>
                   <td>
                     <button className="btn btn-sm text-warning me-2" onClick={() => openModal(user)}>
                       <i className="fas fa-pencil-alt"></i>
@@ -186,7 +305,7 @@ const AddDeleteUsers = () => {
       </div>
 
       {/* Modal for Add/Edit User */}
-      <div className={`modal fade ${showModal ? 'show' : ''}`} style={{ display: showModal ? 'block' : 'none' }} tabIndex="-1" aria-hidden="true">
+      {/* <div className={`modal fade ${showModal ? 'show' : ''}`} style={{ display: showModal ? 'block' : 'none' }} tabIndex="-1" aria-hidden="true">
         <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">
@@ -212,16 +331,19 @@ const AddDeleteUsers = () => {
                   </select>
                 </div>
 
-              <div className="mb-3">
-                <label htmlFor="role" className="form-label">Role</label>
-                <select className="form-select" id="role" defaultValue={currentUser ? currentUser.role : ''} required>
-                  <option value="">-- Select Role --</option>
-                  <option value="admin">Admin</option>
-                  <option value="principal user">Principal User</option>
-                  <option value="visitor">Visitor</option>
-                  <option value="dependent">Dependent</option>
-                </select>
-              </div>
+             
+                {(currentUser?.role !== 'principal') && (
+                  <div className="mb-3">
+                    <label htmlFor="role" className="form-label">Role</label>
+                    <select className="form-select" id="role" defaultValue={currentUser ? currentUser.role : ''} required>
+                      <option value="">-- Select Role --</option>
+                      <option value="admin">Admin</option>
+                      <option value="principal user">Principal User</option>
+                      <option value="visitor">Visitor</option>
+                      <option value="dependent">Dependent</option>
+                    </select>
+                  </div>
+                )}
 
                 <div className="mb-3">
                   <label htmlFor="address" className="form-label">Address</label>
@@ -239,7 +361,60 @@ const AddDeleteUsers = () => {
 </form>
 </div>
 </div>
-</div>
+</div> */}
+
+      {showModal && (
+        <div className="modal fade show d-block" tabIndex="-1">
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <form onSubmit={handleUserFormSubmit}>
+                <div className="modal-header">
+                  <h5 className="modal-title">{currentUser ? 'Edit User' : 'Add User'}</h5>
+                  <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
+                </div>
+                <div className="modal-body">
+
+                  {/* Name, Email, etc. */}
+                  <input name="name" className="form-control mb-2" defaultValue={currentUser?.name} required placeholder="Full Name" />
+                  <input name="email" className="form-control mb-2" defaultValue={currentUser?.email} required placeholder="Email" />
+                  
+                  <select name="role" className="form-control mb-2" defaultValue={currentUser?.role} required onChange={(e) => setSelectedRole(e.target.value)}>
+                    <option value="">Select Role</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Security">Security</option>
+                    <option value="Principal User">Principal User</option>
+                  </select>
+
+                  <input name="category" className="form-control mb-2" defaultValue={currentUser?.category} required placeholder="Category" />
+
+                  {/* Conditionally show/hide fields */}
+                  {selectedRole === 'Principal User' ? (
+                    <>
+                      <select name="street" className="form-control mb-2" required>
+                        <option value="">Select Street</option>
+                        <option value="Street A">Street A</option>
+                        <option value="Street B">Street B</option>
+                        {/* Replace with dynamic list if available */}
+                      </select>
+                      <input name="streetNumber" className="form-control mb-2" placeholder="Street Number" required />
+                    </>
+                  ) : (
+                    <input name="address" className="form-control mb-2" defaultValue={currentUser?.address} placeholder="Address" required />
+                  )}
+
+                  <input name="phone" className="form-control mb-2" defaultValue={currentUser?.phone} placeholder="Phone Number" required />
+                </div>
+                <div className="modal-footer">
+                  <button type="submit" className="btn btn-primary">Save</button>
+                  <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+
 </div>
 );
 };

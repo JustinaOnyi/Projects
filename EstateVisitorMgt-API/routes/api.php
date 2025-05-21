@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\AppUserController;
+use App\Http\Controllers\AuthController;
 
 Route::prefix('categories')->group(function () {
     Route::get('/', [CategoryController::class, 'index']);
@@ -17,3 +18,7 @@ Route::prefix('appusers')->group(function () {
     Route::put('/{appuser}', [AppUserController::class, 'update']);
     Route::delete('/{appuser}', [AppUserController::class, 'destroy']);
 });
+
+
+
+Route::post('/login', [AuthController::class, 'login']);

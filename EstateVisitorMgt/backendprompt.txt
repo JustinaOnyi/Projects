@@ -1,0 +1,5 @@
+2:14am - 77%
+
+Would you like the state/user/category data to be fetched from a backend API instead of hardcoded?
+
+className="col-md-6 d-flex flex-column justify-content-between bg-primary text-white p-5"

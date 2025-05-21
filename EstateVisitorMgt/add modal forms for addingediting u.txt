@@ -1,0 +1,5 @@
+add modal forms for adding/editing users 
+Would you like to use modals for adding/editing users instead of prompts? Or support pagination for many users? Let me know and I’ll help you build it.
+
+Let me know if you want to fetch the role dynamically from an API or a login context.
+ want to integrate Twilio or other SMS APIs directly for real SMS sending
