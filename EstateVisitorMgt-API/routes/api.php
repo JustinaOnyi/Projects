@@ -9,6 +9,13 @@ use App\Http\Controllers\AccessGateController;
 use App\Http\Controllers\MacDeviceController;
 
 
+use App\Http\Controllers\AccessCodeController;
+
+Route::get('/access-codes/users', [AccessCodeController::class, 'getPrincipalUsers']);
+Route::post('/access-codes', [AccessCodeController::class, 'store']);
+Route::put('/access-codes/{id}', [AccessCodeController::class, 'update']);
+Route::get('/access-codes', [AccessCodeController::class, 'listCodes']);
+
 Route::get('/users', [AppUserController::class, 'index']);
 Route::post('/users', [AppUserController::class, 'store']);
 Route::put('/users/{id}', [AppUserController::class, 'update']);

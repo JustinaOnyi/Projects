@@ -1,45 +1,114 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Select from 'react-select';
+import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import Swal from 'sweetalert2';
 
-const mockPrincipalUsers = [
-  { label: 'John Doe', value: 'john', phone: '08012345678' },
-  { label: 'Jane Smith', value: 'jane', phone: '08087654321' },
-  { label: 'Mike Johnson', value: 'mike', phone: '08123456789' }
-];
+const API_BASE = 'http://localhost:8000/api'; // change to your actual base URL
 
 const generateCode = () => {
   return '8' + Math.floor(100000 + Math.random() * 900000).toString().slice(1);
 };
 
 const CreateResetAccessCode = () => {
+  const [principalUsers, setPrincipalUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [records, setRecords] = useState([]);
 
-  const handleGenerateCode = () => {
+  // Fetch principal users
+  useEffect(() => {
+    axios.get(`${API_BASE}/access-codes/users?role=Principal User`)
+      .then(res => {
+        const options = res.data.map(user => ({
+          label: user.name,
+          value: user.id,
+          phone: user.phone
+        }));
+        setPrincipalUsers(options);
+      })
+      .catch(err => console.error('Failed to load principal users', err));
+  }, []);
+
+
+  
+  useEffect(() => {
+    axios.get(`${API_BASE}/access-codes`)
+        .then(response => {
+            const formattedRecords = response.data.map(item => ({
+                id: item.id,
+                user: item.user || 'Unknown', // fallback if not available
+                phone: item.phone || 'N/A',
+                code: item.code,
+                generatedAt: item.created_at
+            }));
+            setRecords(formattedRecords);
+        })
+        .catch(error => {
+            console.error("Failed to load access codes", error);
+        });
+}, []);
+
+  // Generate and save access code
+  const handleGenerateCode = async () => {
     if (!selectedUser) return;
 
-    const code = generateCode();
-    const newRecord = {
-      id: Date.now(),
-      user: selectedUser.label,
-      phone: selectedUser.phone,
-      code,
-      generatedAt: new Date()
-    };
+    // Check if selected user already has a code
+    const existingRecord = records.find(r => r.user === selectedUser.label);
+    if (existingRecord) {
+        Swal.fire({
+            icon: 'info',
+            title: 'Access Code Already Exists',
+            text: `User "${selectedUser.label}" already has a code. You can reset it if needed.`,
+            confirmButtonText: 'OK'
+          });
+      return;  // Stop further execution
+    }
 
-    setRecords(prev => [...prev, newRecord]);
+
+
+    const code = generateCode();
+   // console.log("generate code", code);
+    try {
+      const response = await axios.post(`${API_BASE}/access-codes`, {
+       
+        user_id: selectedUser.value,
+        code
+      });
+    
+
+      const newRecord = {
+        id: response.data.id,
+        user: selectedUser.label,
+        phone: selectedUser.phone,
+        code: response.data.code,
+        generatedAt: new Date(response.data.created_at || new Date())
+      };
+console.log("code generate id",newRecord);
+      setRecords(prev => [...prev, newRecord]);
+    } catch (err) {
+      console.error('Error generating code', err);
+    }
   };
 
-  const handleResetCode = (record) => {
+  // Reset/update access code
+  const handleResetCode = async (record) => {
     const newCode = generateCode();
-    const updatedRecord = {
-      ...record,
-      code: newCode,
-      generatedAt: new Date()
-    };
+    console.log("regenerated code", record);
+    try {
+      await axios.put(`${API_BASE}/access-codes/${record.id}`, {
+        code: newCode
+      });
 
-    setRecords(prev => prev.map(r => r.id === record.id ? updatedRecord : r));
+      const updatedRecord = {
+        ...record,
+        code: newCode,
+        updated_at: new Date()
+      };
+
+      setRecords(prev => prev.map(r => r.id === record.id ? updatedRecord : r));
+    } catch (err) {
+      console.error('Failed to reset code', err);
+    }
   };
 
   const handleCopy = (code) => {
@@ -66,7 +135,7 @@ const CreateResetAccessCode = () => {
         <div className="col-md-4">
           <label>Principal User</label>
           <Select
-            options={mockPrincipalUsers}
+            options={principalUsers}
             onChange={setSelectedUser}
             value={selectedUser}
             placeholder="Select Principal User"
@@ -102,18 +171,10 @@ const CreateResetAccessCode = () => {
               <td>{new Date(record.generatedAt).toLocaleString()}</td>
               <td>
                 <div className="d-flex gap-2 flex-wrap">
-                  <button className="btn btn-sm btn-warning" onClick={() => handleResetCode(record)}>
-                    Reset Code
-                  </button>
-                  <button className="btn btn-sm btn-primary" onClick={() => handleCopy(record.code)}>
-                    Copy
-                  </button>
-                  <button className="btn btn-sm btn-success" onClick={() => handleShareWhatsApp(record.phone, record.code)}>
-                    WhatsApp
-                  </button>
-                  <button className="btn btn-sm btn-secondary" onClick={() => handleSendSMS(record.phone, record.code)}>
-                    SMS
-                  </button>
+                  <button className="btn btn-sm btn-warning" onClick={() => handleResetCode(record)}>Reset Code</button>
+                  <button className="btn btn-sm btn-primary" onClick={() => handleCopy(record.code)}>Copy</button>
+                  <button className="btn btn-sm btn-success" onClick={() => handleShareWhatsApp(record.phone, record.code)}>WhatsApp</button>
+                  <button className="btn btn-sm btn-secondary" onClick={() => handleSendSMS(record.phone, record.code)}>SMS</button>
                 </div>
               </td>
             </tr>
