@@ -1,58 +1,89 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const AddDeleteAccessGate = () => {
-  const [streets] = useState([
-    'Admiralty Way', 'Freedom Way',
-    'Abraham Adesanya', 'Ado Road',
-    'Gana Street', 'Yakubu Gowon Crescent',
-    'Aminu Kano Crescent', 'Herbert Macaulay Way'
-  ]);
-
+  const [streets, setStreets] = useState([]);
   const [selectedStreet, setSelectedStreet] = useState('');
   const [accessGateInput, setAccessGateInput] = useState('');
   const [accessGates, setAccessGates] = useState([]);
   const [editingId, setEditingId] = useState(null);
 
-  const handleAddGate = () => {
+  const API = 'http://127.0.0.1:8000/api'; // adjust as needed
+  const API_URL = 'http://127.0.0.1:8000/api/streets'; // adjust as needed
+  // Fetch streets and access gates on load
+  useEffect(() => {
+    fetchStreets();
+    fetchAccessGates();
+  }, []);
+
+  const fetchStreets = async () => {
+    try {
+      const res = await axios.get(API_URL);
+      setStreets(res.data);
+    } catch (err) {
+      console.error('Error fetching streets:', err);
+    }
+  };
+
+  const fetchAccessGates = async () => {
+    try {
+      const res = await axios.get(`${API}/access-gates`);
+      console.log ('get all access gates',res);
+      setAccessGates(res.data);
+    } catch (err) {
+      console.error('Error fetching access gates:', err);
+    }
+  };
+
+  const handleAddGate = async () => {
     if (selectedStreet && accessGateInput) {
-      setAccessGates(prev => [
-        ...prev,
-        {
-          id: Date.now(),
-          street: selectedStreet,
-          gate: accessGateInput,
-        },
-      ]);
-      clearForm();
+      const payload = {
+        street_id: selectedStreet,
+        gate_name: accessGateInput,
+      };
+      console.log('access gate payload', payload);
+      try {
+        await axios.post(`${API}/access-gate`, payload);
+        fetchAccessGates(); // refresh list
+        clearForm();
+      } catch (err) {
+        console.error('Error adding access gate:', err);
+      }
     }
   };
 
   const handleEdit = (gate) => {
-    setSelectedStreet(gate.street);
+   
+    setSelectedStreet(gate.street_id);
     setAccessGateInput(gate.gate);
     setEditingId(gate.id);
   };
 
-  const handleUpdateGate = () => {
-    setAccessGates(prev =>
-      prev.map(g =>
-        g.id === editingId
-          ? {
-              ...g,
-              street: selectedStreet,
-              gate: accessGateInput,
-            }
-          : g
-      )
-    );
-    clearForm();
+  const handleUpdateGate = async () => {
+    try {
+      const payload = {
+        street_id: selectedStreet,
+        gate_name: accessGateInput,
+      };
+      console.log('update payload', payload);
+      await axios.put(`${API}/access-gate/${editingId}`, payload);
+      fetchAccessGates();
+      clearForm();
+    } catch (err) {
+      console.error('Error updating access gate:', err);
+    }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Delete this gate?')) {
-      setAccessGates(prev => prev.filter(g => g.id !== id));
-      if (editingId === id) clearForm();
+      try {
+        await axios.delete(`${API}/access-gate/${id}`);
+        fetchAccessGates();
+        if (editingId === id) clearForm();
+      } catch (err) {
+        console.error('Error deleting access gate:', err);
+      }
     }
   };
 
@@ -71,7 +102,12 @@ const AddDeleteAccessGate = () => {
           <label className="form-label">Estate Street</label>
           <select className="form-select" value={selectedStreet} onChange={e => setSelectedStreet(e.target.value)}>
             <option value="">Select Street</option>
-            {streets.map(street => <option key={street}>{street}</option>)}
+            {streets.map(street => (
+  <option key={street.id} value={street.id}>
+    {street.name}
+  </option>
+))}
+
           </select>
         </div>
         <div className="col-md-6">
@@ -121,7 +157,7 @@ const AddDeleteAccessGate = () => {
             ))
           ) : (
             <tr>
-              <td colSpan="3" className="text-center">No access gates added.</td>
+              <td colSpan="3" className="text-center">No access gates found.</td>
             </tr>
           )}
         </tbody>

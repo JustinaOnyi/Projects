@@ -1,61 +1,75 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+const API_URL = 'http://127.0.0.1:8000/api/mac-devices'; // replace with actual URL
+
+
 const AddDeleteDevice = () => {
-  const [devices, setDevices] = useState([
-    { id: 1, macAddress: '00:1B:44:11:3A:B7' },
-    { id: 2, macAddress: '00:1B:44:11:3A:B8' }
-  ]);
-  
+  const [devices, setDevices] = useState([]);
   const [macAddress, setMacAddress] = useState('');
   const [editItem, setEditItem] = useState(null);
 
-  // Simple MAC address validation (accepts formats like 00:1B:44:11:3A:B7 or 00-1B-44-11-3A-B7)
   const isValidMac = (mac) => {
     const macRegex = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
     return macRegex.test(mac);
   };
 
-  const handleAddOrUpdate = (e) => {
+  const fetchDevices = async () => {
+    try {
+      const res = await axios.get(API_URL);
+      setDevices(res.data);
+    } catch (error) {
+      console.error('Failed to fetch devices:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchDevices();
+  }, []);
+
+  const handleAddOrUpdate = async (e) => {
     e.preventDefault();
     const trimmedMac = macAddress.trim();
+
     if (!trimmedMac) return alert('Please enter a MAC address');
     if (!isValidMac(trimmedMac)) return alert('Invalid MAC address format');
 
-    if (editItem) {
-      setDevices(prev =>
-        prev.map(dev =>
-          dev.id === editItem.id ? { ...dev, macAddress: trimmedMac } : dev
-        )
-      );
-      setEditItem(null);
-    } else {
-      // Prevent duplicates
-      if (devices.some(dev => dev.macAddress.toLowerCase() === trimmedMac.toLowerCase())) {
-        return alert('This MAC address already exists');
-      }
-      const newDevice = {
-        id: Date.now(),
-        macAddress: trimmedMac
-      };
-      setDevices(prev => [...prev, newDevice]);
-    }
+    try {
+      if (editItem) {
+        
+        await axios.put(`${API_URL}/${editItem.id}`, { mac_address: trimmedMac });
+        setEditItem(null);
+      } else {
+        const exists = devices.some(dev => dev.mac_address.toLowerCase() === trimmedMac.toLowerCase());
+        if (exists) return alert('This MAC address already exists');
 
-    setMacAddress('');
+        await axios.post(API_URL, { mac_address: trimmedMac });
+      }
+
+      setMacAddress('');
+      fetchDevices();
+    } catch (error) {
+      console.error('Failed to save device:', error);
+    }
   };
 
   const handleEdit = (item) => {
     setEditItem(item);
-    setMacAddress(item.macAddress);
+    setMacAddress(item.mac_address);
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm('Delete this MAC address?')) {
-      setDevices(prev => prev.filter(dev => dev.id !== id));
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this MAC address?')) return;
+    try {
+      await axios.delete(`${API_URL}/${id}`);
+      fetchDevices();
       if (editItem && editItem.id === id) {
         setEditItem(null);
         setMacAddress('');
       }
+    } catch (error) {
+      console.error('Failed to delete device:', error);
     }
   };
 
@@ -81,9 +95,9 @@ const AddDeleteDevice = () => {
             {editItem ? 'Update' : 'Add'}
           </button>
           {editItem && (
-            <button 
-              type="button" 
-              className="btn btn-secondary ms-2" 
+            <button
+              type="button"
+              className="btn btn-secondary ms-2"
               onClick={() => {
                 setEditItem(null);
                 setMacAddress('');
@@ -111,7 +125,7 @@ const AddDeleteDevice = () => {
             devices.map((dev, index) => (
               <tr key={dev.id}>
                 <td>{index + 1}</td>
-                <td>{dev.macAddress}</td>
+                <td>{dev.mac_address}</td>
                 <td>
                   <button className="btn btn-sm btn-warning me-2" onClick={() => handleEdit(dev)}>
                     Edit

@@ -1,19 +1,64 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import axios from 'axios';
 
 const AddDeleteUsers = () => {
-  const [users, setUsers] = useState([
-    { id: 1, name: 'John Doe', email: 'john@example.com', role: 'Security', category: 'principal', address: '123 Road', phone: '08012345678', registeredby:'loginPerson' },
-    { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'Admin', category: 'dependent', address: '456 Avenue', phone: '08123456789', registeredby:'loginPerson' },
-  ]);
-  
+  const [users, setUsers] = useState([]);
+    const [states, setStates] = useState([]);
 
+  // useEffect(() => {
+  //   const fetchStates = async () => {
+  //     try {
+  //       const response = await fetch('http://localhost:8000/api/states'); // Replace with your actual API
+  //       const data = await response.json();
+  //       setStates(data);
+  //     } catch (error) {
+  //       console.error('Failed to fetch states:', error);
+  //     }
+  //   };
+  
+  //   fetchStates();
+  // }, []);
+
+  const API_URL = 'http://127.0.0.1:8000/api/users';
+
+  useEffect(() => {
+    const fetchStates = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/api/states');
+        const data = await response.json();
+        setStates(data);
+      } catch (error) {
+        console.error('Failed to fetch states:', error);
+      }
+    };
+
+    const fetchUsers = async () => {
+      try {
+        // const response = await fetch('http://localhost:8000/api/users');
+        // const data = await response.json();
+        const res = await axios.get(API_URL);
+     
+        setUsers(res.data);
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+      }
+    };
+
+    fetchStates();
+    fetchUsers();
+  }, []);
+
+
+
+
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     role: '',
-    category: '',
+    stateId: '',
     address: '',
     phone: '',
     street: '',
@@ -36,7 +81,7 @@ const AddDeleteUsers = () => {
 
   const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    //user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.role.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -76,11 +121,23 @@ const AddDeleteUsers = () => {
     document.body.removeChild(link);
   };
 
-  const deleteUser = id => {
+  // const deleteUser = id => {
+  //   if (window.confirm('Are you sure you want to delete this user?')) {
+  //     setUsers(prev => prev.filter(user => user.id !== id));
+  //   }
+  // };
+
+  const deleteUser = async (id) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
-      setUsers(prev => prev.filter(user => user.id !== id));
+      try {
+        await fetch(`http://localhost:8000/api/users/${id}`, { method: 'DELETE' });
+        setUsers(prev => prev.filter(user => user.id !== id));
+      } catch (error) {
+        console.error('Failed to delete user:', error);
+      }
     }
   };
+
 
 
 
@@ -89,7 +146,7 @@ const AddDeleteUsers = () => {
     if (!file) return;
   
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       const text = event.target.result;
       const lines = text.trim().split('\n');
       const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
@@ -113,22 +170,36 @@ const AddDeleteUsers = () => {
         };
       });
   
-      setUsers(prev => [...prev, ...newUsers]);
+
+      try {
+        const response = await fetch('http://localhost:8000/api/users/bulk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ users: newUsers })
+        });
+        const result = await response.json();
+        setUsers(prev => [...prev, ...result]);
+      } catch (error) {
+        console.error('Bulk upload failed:', error);
+      }
     };
-  
+
     reader.readAsText(file);
   };
+
+    
   
 
-  const handleUserFormSubmit = (e) => {
+  const handleUserFormSubmit = async (e) => {
     e.preventDefault();
     const form = e.target;
     const name = form.name.value;
     const email = form.email.value;
     const role = form.role.value;
-    const category = form.category.value;
+   // const category = form.category.value;
     const phone = form.phone.value;
-  
+    const stateId = form.stateId.value;
+
     let address = form.address?.value || '';
     let street = '';
     let streetNumber = '';
@@ -144,7 +215,7 @@ const AddDeleteUsers = () => {
       name,
       email,
       role,
-      category,
+      stateId,
       address,
       street,
       streetNumber,
@@ -152,14 +223,37 @@ const AddDeleteUsers = () => {
       registeredby: currentUser ? currentUser.registeredby : 'form',
     };
   
-    if (currentUser) {
-      setUsers(prev =>
-        prev.map(user => (user.id === currentUser.id ? { ...user, ...newUser } : user))
-      );
-    } else {
-      setUsers(prev => [...prev, newUser]);
-    }
+    // if (currentUser) {
+    //   setUsers(prev =>
+    //     prev.map(user => (user.id === currentUser.id ? { ...user, ...newUser } : user))
+    //   );
+    // } else {
+    //   setUsers(prev => [...prev, newUser]);
+    // }
   
+    try {
+      if (currentUser)  {
+        await axios.put(`${API_URL}/${currentUser.id}`, newUser, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        setUsers(prev => prev.map(user => user.id === currentUser.id ? { ...user, ...newUser } : user));
+      } else {
+         
+        console.log("creating users", newUser);
+        const response = await axios.post(API_URL, newUser, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+      });
+     
+        const createdUser = await response.data;
+        setUsers(prev => [...prev, createdUser]);
+      }
+    } catch (error) {
+      console.error('Failed to save user:', error);
+    }
     setShowModal(false);
     setCurrentUser(null);
   };
@@ -260,10 +354,10 @@ const AddDeleteUsers = () => {
               <th onClick={() => sortUsers('phone')}>
                 Phone {sortDirection.field === 'phone' && (sortDirection.direction === 'asc' ? '↓' : '↑')}
               </th>
-              <th onClick={() => sortUsers('category')}>
+              {/* <th onClick={() => sortUsers('category')}>
                Category {sortDirection.field === 'category' && (sortDirection.direction === 'asc' ? '↓' : '↑')}
-              </th>
-              <th>Registered By</th>
+              </th> */}
+              {/* <th>Registered By</th> */}
               <th style={{ width: '120px' }}>Actions</th>
             </tr>
           </thead>
@@ -277,8 +371,8 @@ const AddDeleteUsers = () => {
                   {user.role !== 'principal' && <td>{user.role}</td>}
                   <td>{user.address}</td>
                   <td>{user.phone}</td>
-                  <td>{user.category}</td>
-                  <td>{user.registeredby}</td>
+                  {/* <td>{user.category}</td> */}
+                  {/* <td>{user.registeredby}</td> */}
                   <td>
                     <button className="btn btn-sm text-warning me-2" onClick={() => openModal(user)}>
                       <i className="fas fa-pencil-alt"></i>
@@ -385,8 +479,20 @@ const AddDeleteUsers = () => {
                     <option value="Principal User">Principal User</option>
                   </select>
 
-                  <input name="category" className="form-control mb-2" defaultValue={currentUser?.category} required placeholder="Category" />
-
+    
+                    <select
+                      className="form-select"
+                      name="stateId"
+                      value={formData.stateId}
+                      onChange={e => setFormData({ ...formData, stateId: e.target.value })}
+                      required
+                    >
+                      <option value="">Select State</option>
+                      {states.map(state => (
+                        <option key={state.id} value={state.id}>{state.state_name}</option>
+                      ))}
+                    </select>
+               
                   {/* Conditionally show/hide fields */}
                   {selectedRole === 'Principal User' ? (
                     <>
