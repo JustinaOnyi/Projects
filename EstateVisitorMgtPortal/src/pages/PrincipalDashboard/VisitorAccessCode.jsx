@@ -1,46 +1,68 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import Swal from 'sweetalert2';
 import 'bootstrap/dist/css/bootstrap.min.css';
+
+const API_BASE = 'http://localhost:8000/api'; // Change to your base URL
 
 const VisitorAccessCode = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [records, setRecords] = useState([]);
 
-  const generateVisitorCode = () => {
-    const code = '7' + Math.floor(100000 + Math.random() * 900000).toString().substring(1);
-    const createdAt = new Date();
-    const expiresAt = new Date(createdAt.getTime() + 2 * 60 * 60 * 1000); // 2 hours later
-
-    const newRecord = {
-      id: Date.now(),
-      phone: phoneNumber,
-      code,
-      createdAt,
-      expiresAt,
-      status: 'Valid'
-    };
-
-    setRecords(prev => [...prev, newRecord]);
-    setPhoneNumber('');
-  };
-
-  const updateStatuses = () => {
-    const now = new Date();
-    const updated = records.map(r => {
-      if (r.status === 'Used') return r;
-      if (now > new Date(r.expiresAt)) return { ...r, status: 'Expired' };
-      return { ...r, status: 'Valid' };
-    });
-    setRecords(updated);
-  };
-
+  // Fetch codes on load
   useEffect(() => {
-    const timer = setInterval(updateStatuses, 60 * 1000); // Check every minute
-    return () => clearInterval(timer);
-  }, [records]);
+    axios.get(`${API_BASE}/visitor-access-codes`)
+      .then(res => setRecords(res.data))
+      .catch(err => console.error('Failed to fetch visitor codes', err));
+  }, []);
+
+  const generateVisitorCode = async () => {
+
+    if (!phoneNumber.match(/^0\d{10}$/)) {
+        Swal.fire('Invalid Phone', 'Please enter a valid phone number starting with 0', 'warning');
+        return;
+      }
+
+      try {
+        const res = await axios.post(`${API_BASE}/visitor-access-codes`, {
+          phone: phoneNumber
+        });
+    
+        const newRecord = {
+          id: res.data.id,
+          phone: res.data.phone,
+          code: res.data.code,
+          createdAt: new Date(res.data.created_at),
+          expiresAt: new Date(res.data.expires_at),
+          status: res.data.status
+        };
+    
+        setRecords(prev => [...prev, newRecord]);
+        setPhoneNumber('');
+    
+        Swal.fire('Success', `Access code ${newRecord.code} created for ${newRecord.phone}`, 'success');
+      } catch (err) {
+        if (err.response && err.response.status === 409) {
+          const existing = err.response.data.code;
+          Swal.fire({
+            title: 'Code Already Exists',
+            html: `
+              <p>This phone number already has a valid code:</p>
+              <p><strong>${existing.code}</strong></p>
+              <p>Expires: ${new Date(existing.expires_at).toLocaleString()}</p>
+            `,
+            icon: 'info'
+          });
+        } else {
+          console.error(err);
+          Swal.fire('Error', 'Something went wrong generating the code.', 'error');
+        }
+      }
+    };
 
   const handleCopy = (code) => {
     navigator.clipboard.writeText(code);
-    alert('Code copied to clipboard!');
+    Swal.fire('Copied!', 'Access code copied to clipboard.', 'info');
   };
 
   const handleWhatsApp = (phone, code) => {
@@ -55,23 +77,22 @@ const VisitorAccessCode = () => {
   };
 
   const handleRegenerate = (record) => {
-    const newCode = '7' + Math.floor(100000 + Math.random() * 900000).toString().substring(1);
-    const now = new Date();
-    const newExpiry = new Date(now.getTime() + 2 * 60 * 60 * 1000);
-    const updatedRecord = {
-      ...record,
-      code: newCode,
-      createdAt: now,
-      expiresAt: newExpiry,
-      status: 'Valid'
-    };
-    setRecords(prev =>
-      prev.map(r => (r.id === record.id ? updatedRecord : r))
-    );
+    axios.put(`${API_BASE}/visitor-access-codes/${record.id}`, {})
+      .then(res => {
+        setRecords(prev => prev.map(r => r.id === record.id ? res.data : r));
+        Swal.fire('Success', 'Code regenerated', 'success');
+      })
+      .catch(() => Swal.fire('Error', 'Failed to regenerate code', 'error'));
   };
 
   const markAsUsed = (id) => {
-    setRecords(prev => prev.map(r => r.id === id ? { ...r, status: 'Used' } : r));
+    axios.put(`${API_BASE}/visitor-access-codes/${id}/used`)
+      .then(() => {
+        setRecords(prev =>
+          prev.map(r => r.id === id ? { ...r, status: 'Used' } : r)
+        );
+      })
+      .catch(() => Swal.fire('Error', 'Failed to mark as used', 'error'));
   };
 
   return (
@@ -119,15 +140,13 @@ const VisitorAccessCode = () => {
               <tr key={r.id}>
                 <td>{r.phone}</td>
                 <td>{r.code}</td>
-                <td>{new Date(r.createdAt).toLocaleString()}</td>
-                <td>{new Date(r.expiresAt).toLocaleString()}</td>
+                <td>{new Date(r.created_at).toLocaleString()}</td>
+                <td>{new Date(r.expires_at).toLocaleString()}</td>
                 <td>
-                  <span
-                    className={`badge ${
-                      r.status === 'Valid' ? 'bg-success' :
-                      r.status === 'Used' ? 'bg-secondary' : 'bg-danger'
-                    }`}
-                  >
+                  <span className={`badge ${
+                    r.status === 'Valid' ? 'bg-success' :
+                    r.status === 'Used' ? 'bg-secondary' : 'bg-danger'
+                  }`}>
                     {r.status}
                   </span>
                 </td>
@@ -143,9 +162,7 @@ const VisitorAccessCode = () => {
               </tr>
             ))
           ) : (
-            <tr>
-              <td colSpan="6" className="text-center">No access codes generated yet.</td>
-            </tr>
+            <tr><td colSpan="6" className="text-center">No access codes generated yet.</td></tr>
           )}
         </tbody>
       </table>

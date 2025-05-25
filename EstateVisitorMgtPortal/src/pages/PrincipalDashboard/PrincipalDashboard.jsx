@@ -9,6 +9,7 @@ import AddDeleteAccessGate from '../AdminDashboard/AddDeleteAccessGate';
 import AddDeleteCategory from '../SuperAdminDashboard/AddDeleteCategory';
 import AddDeleteDependants from '../AdminDashboard/AddDeleteDependants';
 import CreateAccessCode from './VisitorAccessCode';
+import PermanentAccessCode from './DependantAccessCode';
 
 const PrincipalDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -71,10 +72,16 @@ const PrincipalDashboard = () => {
               </Link>
             </li>
           
+            <li className="nav-item mb-2">
+              <Link to="/principal/permanent-accesscode" className="nav-link text-white">
+                <i className="fas fa-lock me-2"></i> Permanent Access Code
+              </Link>
+            </li>
+
           
             <li className="nav-item mb-2">
               <Link to="/principal/create-accesscode" className="nav-link text-white">
-                <i className="fas fa-lock me-2"></i> Create/Reset Access Code
+                <i className="fas fa-lock me-2"></i> Visitor Access Code
               </Link>
             </li>
             <li className="nav-item mb-2">
@@ -104,7 +111,7 @@ const PrincipalDashboard = () => {
             <Route path="add-delete-category" element={<AddDeleteCategory />} />
             <Route path="add-delete-dependants" element={<AddDeleteDependants />} />
             <Route path="create-accesscode" element={<CreateAccessCode />} />
-            
+            <Route path="permanent-accesscode" element={<PermanentAccessCode />} />
           </Routes>
         </main>
       </div>

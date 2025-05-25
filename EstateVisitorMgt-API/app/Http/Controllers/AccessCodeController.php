@@ -20,6 +20,18 @@ class AccessCodeController extends Controller
         return response()->json($users);
     }
 
+    public function getDependantsForPrincipalUser(Request $request)
+    {
+        $principalId = auth()->id();
+    
+        $dependants = DB::table('app_users')
+            ->where('registered_by', $principalId)
+            ->select('id', 'name', 'phone')
+            ->get();
+    
+        return response()->json($dependants);
+    }
+
     public function store(Request $request)
 {
     $validator = Validator::make($request->all(), [

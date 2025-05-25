@@ -4,77 +4,69 @@ import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Swal from 'sweetalert2';
 
-const API_BASE = 'http://localhost:8000/api'; // change to your actual base URL
+const API_BASE = 'http://localhost:8000/api';
 
 const generateCode = () => {
   return '8' + Math.floor(100000 + Math.random() * 900000).toString().slice(1);
 };
 
-const CreateResetAccessCode = () => {
-  const [principalUsers, setPrincipalUsers] = useState([]);
+const DependantAccessCode = () => {
+  const [dependantUsers, setDependantUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [records, setRecords] = useState([]);
 
-  // Fetch principal users
+  // Fetch dependant users registered by current principal user
   useEffect(() => {
-    axios.get(`${API_BASE}/access-codes/users?role=Principal User`)
+    axios.get(`${API_BASE}/access-codes/users/dependants`)
       .then(res => {
         const options = res.data.map(user => ({
           label: user.name,
           value: user.id,
           phone: user.phone
         }));
-        setPrincipalUsers(options);
+        setDependantUsers(options);
       })
-      .catch(err => console.error('Failed to load principal users', err));
+      .catch(err => console.error('Failed to load dependant users', err));
   }, []);
 
-
-  
+  // Fetch existing access codes
   useEffect(() => {
     axios.get(`${API_BASE}/access-codes`)
-        .then(response => {
-            const formattedRecords = response.data.map(item => ({
-                id: item.id,
-                user: item.user || 'Unknown', // fallback if not available
-                phone: item.phone || 'N/A',
-                code: item.code,
-                generatedAt: item.created_at
-            }));
-            setRecords(formattedRecords);
-        })
-        .catch(error => {
-            console.error("Failed to load access codes", error);
-        });
-}, []);
+      .then(response => {
+        const formattedRecords = response.data.map(item => ({
+          id: item.id,
+          user: item.user || 'Unknown',
+          phone: item.phone || 'N/A',
+          code: item.code,
+          generatedAt: item.created_at
+        }));
+        setRecords(formattedRecords);
+      })
+      .catch(error => {
+        console.error("Failed to load access codes", error);
+      });
+  }, []);
 
-  // Generate and save access code
   const handleGenerateCode = async () => {
     if (!selectedUser) return;
 
-    // Check if selected user already has a code
     const existingRecord = records.find(r => r.user === selectedUser.label);
     if (existingRecord) {
-        Swal.fire({
-            icon: 'info',
-            title: 'Access Code Already Exists',
-            text: `User "${selectedUser.label}" already has a code. You can reset it if needed.`,
-            confirmButtonText: 'OK'
-          });
-      return;  // Stop further execution
+      Swal.fire({
+        icon: 'info',
+        title: 'Access Code Already Exists',
+        text: `User "${selectedUser.label}" already has a code. You can reset it if needed.`,
+        confirmButtonText: 'OK'
+      });
+      return;
     }
 
-
-
     const code = generateCode();
-   // console.log("generate code", code);
     try {
       const response = await axios.post(`${API_BASE}/access-codes`, {
-       
         user_id: selectedUser.value,
         code
       });
-    
 
       const newRecord = {
         id: response.data.id,
@@ -83,7 +75,7 @@ const CreateResetAccessCode = () => {
         code: response.data.code,
         generatedAt: new Date(response.data.created_at || new Date())
       };
-console.log("code generate id",newRecord);
+
       setRecords(prev => [...prev, newRecord]);
     } catch (err) {
       console.error('Error generating code', err);
@@ -95,10 +87,8 @@ console.log("code generate id",newRecord);
     }
   };
 
-  // Reset/update access code
   const handleResetCode = async (record) => {
     const newCode = generateCode();
-    console.log("regenerated code", record);
     try {
       await axios.put(`${API_BASE}/access-codes/${record.id}`, {
         code: newCode
@@ -134,16 +124,16 @@ console.log("code generate id",newRecord);
 
   return (
     <div className="container mt-4">
-      <h4 className="text-primary mb-4">Create/Reset Access Code for Users</h4>
+      <h4 className="text-primary mb-4">Create/Reset Access Code for Dependants</h4>
 
       <div className="row g-3">
         <div className="col-md-4">
-          <label>Principal User</label>
+          <label>Dependant User</label>
           <Select
-            options={principalUsers}
+            options={dependantUsers}
             onChange={setSelectedUser}
             value={selectedUser}
-            placeholder="Select Principal User"
+            placeholder="Select Dependant User"
           />
         </div>
 
@@ -160,7 +150,7 @@ console.log("code generate id",newRecord);
       <table className="table table-bordered">
         <thead className="table-light">
           <tr>
-            <th>Principal User</th>
+            <th>User</th>
             <th>Phone Number</th>
             <th>Access Code</th>
             <th>Date Generated</th>
@@ -176,7 +166,7 @@ console.log("code generate id",newRecord);
               <td>{new Date(record.generatedAt).toLocaleString()}</td>
               <td>
                 <div className="d-flex gap-2 flex-wrap">
-                  <button className="btn btn-sm btn-warning" onClick={() => handleResetCode(record)}>Reset Code</button>
+                  <button className="btn btn-sm btn-warning" onClick={() => handleResetCode(record)}>Reset</button>
                   <button className="btn btn-sm btn-primary" onClick={() => handleCopy(record.code)}>Copy</button>
                   <button className="btn btn-sm btn-success" onClick={() => handleShareWhatsApp(record.phone, record.code)}>WhatsApp</button>
                   <button className="btn btn-sm btn-secondary" onClick={() => handleSendSMS(record.phone, record.code)}>SMS</button>
@@ -192,4 +182,4 @@ console.log("code generate id",newRecord);
   );
 };
 
-export default CreateResetAccessCode;
+export default DependantAccessCode;

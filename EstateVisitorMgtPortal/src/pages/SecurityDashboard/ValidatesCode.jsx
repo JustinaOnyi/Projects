@@ -1,12 +1,14 @@
-// ValidateCode.js
 import React, { useState } from 'react';
 import swal from 'sweetalert';
+import axios from 'axios';
+
+const API_BASE = 'http://localhost:8000/api';
 
 const ValidateCode = () => {
   const [codeValue, setCodeValue] = useState('');
   const isCodeValidFormat = /^\d{6}$/.test(codeValue);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!isCodeValidFormat) {
@@ -16,16 +18,18 @@ const ValidateCode = () => {
       return;
     }
 
-    const isValid = codeValue.startsWith('7') || codeValue.startsWith('8');
+    try {
+      const res = await axios.post(`${API_BASE}/validate-code`, { code: codeValue });
 
-    if (isValid) {
-      swal('Access Granted', 'Allow Entry', 'success').then(() => {
-        setCodeValue('');
-      });
-    } else {
-      swal('Access Denied', 'Invalid or expired code', 'error').then(() => {
-        setCodeValue('');
-      });
+      if (res.data.status === 'granted') {
+        swal('Access Granted', `Valid ${res.data.type} access code`, 'success');
+      } else {
+        swal('Access Denied', res.data.message || 'Invalid or expired code', 'error');
+      }
+    } catch (err) {
+      swal('Access Denied', 'Code not found or expired.', 'error');
+    } finally {
+      setCodeValue('');
     }
   };
 

@@ -8,13 +8,27 @@ use App\Http\Controllers\EstateGateController;
 use App\Http\Controllers\AccessGateController;
 use App\Http\Controllers\MacDeviceController;
 
-
 use App\Http\Controllers\AccessCodeController;
+
+
+use App\Http\Controllers\VisitorAccessCodeController;
+
+use App\Http\Controllers\AccessCodeValidationController;
+
+Route::post('/validate-code', [AccessCodeValidationController::class, 'validateCode']);
+
+
+Route::get('/visitor-access-codes', [VisitorAccessCodeController::class, 'index']);
+Route::post('/visitor-access-codes', [VisitorAccessCodeController::class, 'store']);
+Route::put('/visitor-access-codes/{id}', [VisitorAccessCodeController::class, 'update']);
+Route::put('/visitor-access-codes/{id}/used', [VisitorAccessCodeController::class, 'markAsUsed']);
+
 
 Route::get('/access-codes/users', [AccessCodeController::class, 'getPrincipalUsers']);
 Route::post('/access-codes', [AccessCodeController::class, 'store']);
 Route::put('/access-codes/{id}', [AccessCodeController::class, 'update']);
 Route::get('/access-codes', [AccessCodeController::class, 'listCodes']);
+Route::get('/access-codes/users/dependants', [AccessCodeController::class, 'getDependantsForPrincipalUser']);
 
 Route::get('/users', [AppUserController::class, 'index']);
 Route::post('/users', [AppUserController::class, 'store']);
