@@ -11,6 +11,192 @@ import AddDeleteDependants from '../AdminDashboard/AddDeleteDependants';
 import CreateAccessCode from './VisitorAccessCode';
 import PermanentAccessCode from './DependantAccessCode';
 
+
+
+const DashboardHome = () => {
+  return (
+    <>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h4 className="text-dark mb-0">
+          <i className="fas fa-tachometer-alt me-2 text-primary"></i>
+          Principal User Dashboard
+        </h4>
+        <small className="text-muted">Welcome back! Manage your estate system</small>
+      </div>
+
+      {/* Dashboard Cards */}
+      <div className="row g-4">
+        {/* User Management Card */}
+        <div className="col-lg-6 col-md-6 col-sm-12">
+          <Link to="/principal/add-delete-users" className="text-decoration-none">
+            <div className="card h-100 shadow-sm border-0 card-hover">
+              <div className="card-body text-center p-4">
+                <div className="mb-3">
+                  <i className="fas fa-users-cog fa-3x text-primary"></i>
+                </div>
+                <h5 className="card-title text-dark">Dependant Management</h5>
+                <p className="card-text text-muted">
+                  Add, edit, or remove dependants from the system.
+                </p>
+                <div className="mt-auto">
+                  <span className="btn btn-primary btn-sm">
+                    Manage Dependants <i className="fas fa-arrow-right ms-1"></i>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </div>
+
+       
+        {/* Access Management Card */}
+        <div className="col-lg-6 col-md-6 col-sm-12">
+          <Link to="/principal/create-accesscode" className="text-decoration-none">
+            <div className="card h-100 shadow-sm border-0 card-hover">
+              <div className="card-body text-center p-4">
+                <div className="mb-3">
+                  <i className="fas fa-key fa-3x text-warning"></i>
+                </div>
+                <h5 className="card-title text-dark">Visitor Access Code Management</h5>
+                <p className="card-text text-muted">
+                  Create new access codes for visitors.
+                </p>
+                <div className="mt-auto">
+                  <span className="btn btn-warning btn-sm">
+                    Manage Access <i className="fas fa-arrow-right ms-1"></i>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </div>
+
+        {/* Settings Card */}
+        <div className="col-lg-6 col-md-6 col-sm-12">
+          <Link to="/principal/permanent-accesscode" className="text-decoration-none">
+            <div className="card h-100 shadow-sm border-0 card-hover">
+              <div className="card-body text-center p-4">
+                <div className="mb-3">
+                  <i className="fas fa-cog fa-3x text-info"></i>
+                </div>
+                <h5 className="card-title text-dark">Permanent Access Codes</h5>
+                <p className="card-text text-muted">
+                  Create access codes for dependants.
+                </p>
+                <div className="mt-auto">
+                  <span className="btn btn-info btn-sm">
+                    Configure <i className="fas fa-arrow-right ms-1"></i>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </div>
+
+
+         {/* Estate Registration Card */}
+         <div className="col-lg-6 col-md-6 col-sm-12">
+          <Link to="#" className="text-decoration-none">
+            <div className="card h-100 shadow-sm border-0 card-hover">
+              <div className="card-body text-center p-4">
+                <div className="mb-3">
+                  <i className="fas fa-building fa-3x text-success"></i>
+                </div>
+                <h5 className="card-title text-dark">Report Details</h5>
+                <p className="card-text text-muted">
+                  view details.
+                </p>
+                <div className="mt-auto">
+                  <span className="btn btn-success btn-sm">
+                    Report <i className="fas fa-arrow-right ms-1"></i>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </div>
+
+      </div>
+
+      {/* Quick Stats Section */}
+      <div className="row mt-5">
+        <div className="col-12">
+          <h5 className="text-dark mb-3">
+            <i className="fas fa-chart-bar me-2"></i>
+            Quick Overview
+          </h5>
+        </div>
+        <div className="col-lg-3 col-md-6 mb-3">
+          <div className="card bg-primary text-white">
+            <div className="card-body">
+              <div className="d-flex justify-content-between">
+                <div>
+                  <h6 className="card-title">Total Users</h6>
+                  <h4>1,234</h4>
+                </div>
+                <i className="fas fa-users fa-2x opacity-75"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="col-lg-3 col-md-6 mb-3">
+          <div className="card bg-success text-white">
+            <div className="card-body">
+              <div className="d-flex justify-content-between">
+                <div>
+                  <h6 className="card-title">Active Estates</h6>
+                  <h4>87</h4>
+                </div>
+                <i className="fas fa-building fa-2x opacity-75"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="col-lg-3 col-md-6 mb-3">
+          <div className="card bg-warning text-white">
+            <div className="card-body">
+              <div className="d-flex justify-content-between">
+                <div>
+                  <h6 className="card-title">Access Codes</h6>
+                  <h4>456</h4>
+                </div>
+                <i className="fas fa-key fa-2x opacity-75"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="col-lg-3 col-md-6 mb-3">
+          <div className="card bg-info text-white">
+            <div className="card-body">
+              <div className="d-flex justify-content-between">
+                <div>
+                  <h6 className="card-title">Security Gates</h6>
+                  <h4>23</h4>
+                </div>
+                <i className="fas fa-shield-alt fa-2x opacity-75"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <style jsx>{`
+        .card-hover {
+          transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+        }
+        .card-hover:hover .btn {
+          transform: scale(1.05);
+        }
+      `}</style>
+    </>
+  );
+};
+
+
 const PrincipalDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
@@ -96,15 +282,7 @@ const PrincipalDashboard = () => {
         {/* Main Content */}
         <main className="flex-grow-1 p-4 bg-light w-100">
           <Routes>
-            <Route
-              path="/principal"
-              element={
-                <>
-                  <h6>Welcome to the Admin Dashboard</h6>
-                  <p>Select a menu option to continue.</p>
-                </>
-              }
-            />
+             <Route index element={<DashboardHome />} />
             <Route path="add-delete-users" element={<AddDeleteUsers />} />
             <Route path="add-delete-estate-street" element={<AddDeleteEstateStreet />} />
             <Route path="add-delete-access-gate" element={<AddDeleteAccessGate />} />

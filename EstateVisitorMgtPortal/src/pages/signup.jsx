@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import axios from 'axios'; // Make sure axios is imported
 
+
+const API_BASE = 'http://localhost:8000/api'; // Change to your base URL
 const SignupPage = () => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -13,7 +16,7 @@ const SignupPage = () => {
 
   const handleSignup = async (e) => {
     e.preventDefault();
-
+  
     if (password !== confirmPassword) {
       Swal.fire({
         icon: 'error',
@@ -22,19 +25,34 @@ const SignupPage = () => {
       });
       return;
     }
-
+  
     setLoading(true);
-    // Simulate sign-up API call
-    setTimeout(() => {
-      setLoading(false);
+  
+    try {
+      const response = await axios.post(`${API_BASE}/register-superadmin`, {
+        name,
+        phone,
+        password,
+      });
+  
       Swal.fire({
         icon: 'success',
         title: 'Success',
-        text: 'Account created successfully!',
+        text: response.data.message || 'Super Admin registered successfully!',
       }).then(() => {
         navigate('/login');
       });
-    }, 1500);
+    } catch (error) {
+      const message =
+        error.response?.data?.message || 'An error occurred during registration.';
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: message,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

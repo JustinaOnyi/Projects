@@ -4,6 +4,7 @@ import Swal from 'sweetalert2';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import axios from 'axios'; // Make sure axios is imported
 
 const LoginPage = () => {
   const [phone, setPhone] = useState('');
@@ -15,27 +16,34 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
-    // Simulate API login
-    setTimeout(() => {
+  
+    try {
+      const response = await axios.post('http://localhost:8000/api/login', {
+        phone,
+        password,
+      });
+  
+      const user = response.data.user;
+  console.log("login details", user);
+      // Store user in localStorage or context
+      localStorage.setItem('user', JSON.stringify(user));
+  
+      // Redirect based on role
+      if (user.role === 'Admin') navigate('/admin');
+      else if (user.role === 'Security') navigate('/security');
+      else if (user.role === 'Super Admin') navigate('/superadmin');
+      else if (user.role === 'Principal User') navigate('/principal');
+      else navigate('/login');
+  
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Login Failed',
+        text: error.response?.data?.message || 'Something went wrong.',
+      });
+    } finally {
       setLoading(false);
-
-      // Dummy credentials for demo
-      if (phone === '08012345678' && password === '12345') {
-        // Simulate role
-        const userRole = 'admin'; // could be 'security', 'principal', etc.
-
-        if (userRole === 'admin') navigate('/admin-dashboard');
-        else if (userRole === 'security') navigate('/security-dashboard');
-        else navigate('/dashboard');
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Login Failed',
-          text: 'Incorrect phone number or password!',
-        });
-      }
-    }, 1500);
+    }
   };
 
   return (
@@ -87,20 +95,7 @@ const LoginPage = () => {
                   />
                 </div>
               </div>
-            {/* <div className="mb-3">
-              <label htmlFor="password" className="form-label">
-                5-Digit Password
-              </label>
-              <input
-                type="password"
-                className="form-control"
-                id="password"
-                maxLength="5"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div> */}
+           
             <div className="mb-3">
                 <label className="form-label">5-Digit Password</label>
                 <div className="input-group">

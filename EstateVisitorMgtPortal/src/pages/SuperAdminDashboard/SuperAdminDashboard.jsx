@@ -10,7 +10,187 @@ import AddDeleteCategory from './AddDeleteCategory';
 import AddDeleteDependants from '../AdminDashboard/AddDeleteDependants';
 import CreateAccessCode from '../AdminDashboard/CreateResetAccessCode';
 import RegisterEstate from './RegisterEstate';
+import PasswordCreation from './OnboardUsers';
 
+const DashboardHome = () => {
+  return (
+    <>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h4 className="text-dark mb-0">
+          <i className="fas fa-tachometer-alt me-2 text-primary"></i>
+          Super Admin Dashboard
+        </h4>
+        <small className="text-muted">Welcome back! Manage your estate system</small>
+      </div>
+
+      {/* Dashboard Cards */}
+      <div className="row g-4">
+        {/* User Management Card */}
+        <div className="col-lg-6 col-md-6 col-sm-12">
+          <Link to="/superadmin/add-delete-users" className="text-decoration-none">
+            <div className="card h-100 shadow-sm border-0 card-hover">
+              <div className="card-body text-center p-4">
+                <div className="mb-3">
+                  <i className="fas fa-users-cog fa-3x text-primary"></i>
+                </div>
+                <h5 className="card-title text-dark">User Management</h5>
+                <p className="card-text text-muted">
+                  Add, edit, or remove users from the system. Manage user roles and permissions.
+                </p>
+                <div className="mt-auto">
+                  <span className="btn btn-primary btn-sm">
+                    Manage Users <i className="fas fa-arrow-right ms-1"></i>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </div>
+
+        {/* Estate Registration Card */}
+        <div className="col-lg-6 col-md-6 col-sm-12">
+          <Link to="/superadmin/registerestate" className="text-decoration-none">
+            <div className="card h-100 shadow-sm border-0 card-hover">
+              <div className="card-body text-center p-4">
+                <div className="mb-3">
+                  <i className="fas fa-building fa-3x text-success"></i>
+                </div>
+                <h5 className="card-title text-dark">Register Estate</h5>
+                <p className="card-text text-muted">
+                  Register new estates and manage existing estate information and details.
+                </p>
+                <div className="mt-auto">
+                  <span className="btn btn-success btn-sm">
+                    Register Estate <i className="fas fa-arrow-right ms-1"></i>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </div>
+
+        {/* Access Management Card */}
+        <div className="col-lg-6 col-md-6 col-sm-12">
+          <Link to="/superadmin/create-accesscode" className="text-decoration-none">
+            <div className="card h-100 shadow-sm border-0 card-hover">
+              <div className="card-body text-center p-4">
+                <div className="mb-3">
+                  <i className="fas fa-key fa-3x text-warning"></i>
+                </div>
+                <h5 className="card-title text-dark">Access Code Management</h5>
+                <p className="card-text text-muted">
+                  Create new access codes or reset existing ones for estate security.
+                </p>
+                <div className="mt-auto">
+                  <span className="btn btn-warning btn-sm">
+                    Manage Access <i className="fas fa-arrow-right ms-1"></i>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </div>
+
+        {/* Settings Card */}
+        <div className="col-lg-6 col-md-6 col-sm-12">
+          <Link to="/superadmin/add-delete-estate-street" className="text-decoration-none">
+            <div className="card h-100 shadow-sm border-0 card-hover">
+              <div className="card-body text-center p-4">
+                <div className="mb-3">
+                  <i className="fas fa-cog fa-3x text-info"></i>
+                </div>
+                <h5 className="card-title text-dark">System Settings</h5>
+                <p className="card-text text-muted">
+                  Configure estate streets, access gates, categories and system preferences.
+                </p>
+                <div className="mt-auto">
+                  <span className="btn btn-info btn-sm">
+                    Configure <i className="fas fa-arrow-right ms-1"></i>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </div>
+      </div>
+
+      {/* Quick Stats Section */}
+      <div className="row mt-5">
+        <div className="col-12">
+          <h5 className="text-dark mb-3">
+            <i className="fas fa-chart-bar me-2"></i>
+            Quick Overview
+          </h5>
+        </div>
+        <div className="col-lg-3 col-md-6 mb-3">
+          <div className="card bg-primary text-white">
+            <div className="card-body">
+              <div className="d-flex justify-content-between">
+                <div>
+                  <h6 className="card-title">Total Users</h6>
+                  <h4>1,234</h4>
+                </div>
+                <i className="fas fa-users fa-2x opacity-75"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="col-lg-3 col-md-6 mb-3">
+          <div className="card bg-success text-white">
+            <div className="card-body">
+              <div className="d-flex justify-content-between">
+                <div>
+                  <h6 className="card-title">Active Estates</h6>
+                  <h4>87</h4>
+                </div>
+                <i className="fas fa-building fa-2x opacity-75"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="col-lg-3 col-md-6 mb-3">
+          <div className="card bg-warning text-white">
+            <div className="card-body">
+              <div className="d-flex justify-content-between">
+                <div>
+                  <h6 className="card-title">Access Codes</h6>
+                  <h4>456</h4>
+                </div>
+                <i className="fas fa-key fa-2x opacity-75"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="col-lg-3 col-md-6 mb-3">
+          <div className="card bg-info text-white">
+            <div className="card-body">
+              <div className="d-flex justify-content-between">
+                <div>
+                  <h6 className="card-title">Security Gates</h6>
+                  <h4>23</h4>
+                </div>
+                <i className="fas fa-shield-alt fa-2x opacity-75"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <style jsx>{`
+        .card-hover {
+          transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+        }
+        .card-hover:hover .btn {
+          transform: scale(1.05);
+        }
+      `}</style>
+    </>
+  );
+};
 
 const SuperAdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -142,7 +322,11 @@ const SuperAdminDashboard = () => {
                 <i className="fas fa-pen me-2"></i> Register Estate
               </Link>
             </li>
-            
+            <li className="nav-item mb-2">
+              <Link to="/superadmin/create-password" className="nav-link text-white">
+                <i className="fas fa-lock me-2"></i> Password Creation
+              </Link>
+            </li>
             <li className="nav-item mb-2">
               <a
                 className="nav-link text-white d-flex justify-content-between align-items-center"
@@ -180,15 +364,8 @@ const SuperAdminDashboard = () => {
         {/* Main Content */}
         <main className="flex-grow-1 p-4 bg-light w-100">
           <Routes>
-            <Route
-              path="/superadmin"
-              element={
-                <>
-                  <h6 style={{color:'#000'}}>Welcome to the Admin Dashboard</h6>
-                  <p>Select a menu option to continue.</p>
-                </>
-              }
-            />
+            {/* <Route path="/superadmin" element={<DashboardHome />} /> */}
+            <Route index element={<DashboardHome />} />
             <Route path="add-delete-users" element={<AddDeleteUsers />} />
             <Route path="add-delete-estate-street" element={<AddDeleteEstateStreet />} />
             <Route path="add-delete-access-gate" element={<AddDeleteAccessGate />} />
@@ -196,6 +373,7 @@ const SuperAdminDashboard = () => {
             <Route path="add-delete-dependants" element={<AddDeleteDependants />} />
             <Route path="create-accesscode" element={<CreateAccessCode />} />
             <Route path="registerestate" element={<RegisterEstate />} />
+            <Route path="create-password" element={<PasswordCreation />} />
           </Routes>
         </main>
       </div>

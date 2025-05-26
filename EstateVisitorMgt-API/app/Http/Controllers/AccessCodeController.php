@@ -22,8 +22,7 @@ class AccessCodeController extends Controller
 
     public function getDependantsForPrincipalUser(Request $request)
     {
-        $principalId = auth()->id();
-    
+        $principalId = $request->query('principal_id');
         $dependants = DB::table('app_users')
             ->where('registered_by', $principalId)
             ->select('id', 'name', 'phone')

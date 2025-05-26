@@ -7,14 +7,15 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EstateGateController;
 use App\Http\Controllers\AccessGateController;
 use App\Http\Controllers\MacDeviceController;
-
 use App\Http\Controllers\AccessCodeController;
-
-
 use App\Http\Controllers\VisitorAccessCodeController;
-
 use App\Http\Controllers\AccessCodeValidationController;
+use App\Http\Controllers\EstateController;
 
+Route::get('/estates', [EstateController::class, 'index']);
+Route::post('/estates', [EstateController::class, 'store']);
+Route::put('/estates/{id}', [EstateController::class, 'update']);
+Route::delete('/estates/{id}', [EstateController::class, 'destroy']);
 Route::post('/validate-code', [AccessCodeValidationController::class, 'validateCode']);
 
 
@@ -71,3 +72,5 @@ Route::prefix('categories')->group(function () {
 
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register-superadmin', [AuthController::class, 'registerSuperAdmin']);
+

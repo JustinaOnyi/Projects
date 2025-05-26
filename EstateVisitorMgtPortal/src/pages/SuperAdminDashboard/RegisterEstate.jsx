@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import axios from 'axios';
+
+const API_BASE = 'http://localhost:8000/api';
 
 // SearchableDropdown component (reusable for State and Location)
 const SearchableDropdown = ({ label, options, value, onChange, disabled }) => {
@@ -9,10 +12,14 @@ const SearchableDropdown = ({ label, options, value, onChange, disabled }) => {
   const [showOptions, setShowOptions] = useState(false);
   const containerRef = useRef(null);
 
-  const filteredOptions = options.filter((opt) =>
+  const filteredOptions = (options || []).filter((opt) =>
+    typeof opt === "string" &&
     opt.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  
 
+ 
+  
   useEffect(() => {
     function handleClickOutside(event) {
       if (containerRef.current && !containerRef.current.contains(event.target)) {
@@ -111,40 +118,41 @@ const exportToCSV = (data, filename = "estates.csv") => {
 
 const RegisterEstate = () => {
   // Sample states and locations data
-  const statesData = [
-    { id: 1, name: "Lagos", locations: ["Ikeja", "Lekki", "Surulere"] },
-    { id: 2, name: "Abuja", locations: ["Gwarinpa", "Wuse", "Maitama"] },
-    { id: 3, name: "Rivers", locations: ["Port Harcourt", "Obio-Akpor", "Bonny"] },
-  ];
+//   const statesData = [
+//     { id: 1, name: "Lagos", locations: ["Ikeja", "Lekki", "Surulere"] },
+//     { id: 2, name: "Abuja", locations: ["Gwarinpa", "Wuse", "Maitama"] },
+//     { id: 3, name: "Rivers", locations: ["Port Harcourt", "Obio-Akpor", "Bonny"] },
+//   ];
 
   // Estates list state
-  const [estates, setEstates] = useState([]);
+//   const [estates, setEstates] = useState([]);
 
-  // Form states
-  const [selectedState, setSelectedState] = useState("");
-  const [locationOptions, setLocationOptions] = useState([]);
-  const [selectedLocation, setSelectedLocation] = useState("");
-  const [estateName, setEstateName] = useState("");
-  const [dateRegistered, setDateRegistered] = useState("");
-  const [paymentDate, setPaymentDate] = useState("");
+//   // Form states
+//   const [selectedState, setSelectedState] = useState("");
+//   const [locationOptions, setLocationOptions] = useState([]);
+//   const [selectedLocation, setSelectedLocation] = useState("");
+//   const [estateName, setEstateName] = useState("");
+//   const [dateRegistered, setDateRegistered] = useState("");
+//   const [paymentDate, setPaymentDate] = useState("");
+
+const [estates, setEstates] = useState([]); // ✅ MUST be declared before useEffect
+const [selectedState, setSelectedState] = useState("");
+const [locationOptions, setLocationOptions] = useState([]);
+const [selectedLocation, setSelectedLocation] = useState("");
+const [estateName, setEstateName] = useState("");
+const [dateRegistered, setDateRegistered] = useState("");
+const [paymentDate, setPaymentDate] = useState("");
+const [editingEstateId, setEditingEstateId] = useState(null);
+const [searchTerm, setSearchTerm] = useState("");
 
   // Edit mode
-  const [editingEstateId, setEditingEstateId] = useState(null);
+//   const [editingEstateId, setEditingEstateId] = useState(null);
 
   // Table search/filter
-  const [searchTerm, setSearchTerm] = useState("");
+  //const [searchTerm, setSearchTerm] = useState("");
 
   // Update location options when state changes
-  useEffect(() => {
-    if (selectedState) {
-      const state = statesData.find((s) => s.name === selectedState);
-      setLocationOptions(state ? state.locations : []);
-      setSelectedLocation("");
-    } else {
-      setLocationOptions([]);
-      setSelectedLocation("");
-    }
-  }, [selectedState]);
+  
 
   // Reset form fields
   const resetForm = () => {
@@ -157,48 +165,48 @@ const RegisterEstate = () => {
   };
 
   // Handle form submit for Add or Edit
-  const handleSubmit = (e) => {
-    e.preventDefault();
+//   const handleSubmit = (e) => {
+//     e.preventDefault();
 
-    if (!selectedState || !selectedLocation || !estateName || !dateRegistered || !paymentDate) {
-      alert("Please fill all fields");
-      return;
-    }
+//     if (!selectedState || !selectedLocation || !estateName || !dateRegistered || !paymentDate) {
+//       alert("Please fill all fields");
+//       return;
+//     }
 
-    if (editingEstateId !== null) {
-      // Edit existing estate
-      setEstates((prev) =>
-        prev.map((est) =>
-          est.id === editingEstateId
-            ? {
-                ...est,
-                state: selectedState,
-                location: selectedLocation,
-                estateName,
-                dateRegistered,
-                paymentDate,
-              }
-            : est
-        )
-      );
-      alert("Estate updated successfully!");
-    } else {
-      // Add new estate
-      const newEstate = {
-        id: Date.now(),
-        state: selectedState,
-        location: selectedLocation,
-        estateName,
-        dateRegistered,
-        paymentDate,
-        active: true,
-      };
-      setEstates((prev) => [newEstate, ...prev]);
-      alert("Estate added successfully!");
-    }
+//     if (editingEstateId !== null) {
+//       // Edit existing estate
+//       setEstates((prev) =>
+//         prev.map((est) =>
+//           est.id === editingEstateId
+//             ? {
+//                 ...est,
+//                 state: selectedState,
+//                 location: selectedLocation,
+//                 estateName,
+//                 dateRegistered,
+//                 paymentDate,
+//               }
+//             : est
+//         )
+//       );
+//       alert("Estate updated successfully!");
+//     } else {
+//       // Add new estate
+//       const newEstate = {
+//         id: Date.now(),
+//         state: selectedState,
+//         location: selectedLocation,
+//         estateName,
+//         dateRegistered,
+//         paymentDate,
+//         active: true,
+//       };
+//       setEstates((prev) => [newEstate, ...prev]);
+//       alert("Estate added successfully!");
+//     }
 
-    resetForm();
-  };
+//     resetForm();
+//   };
 
   // Handle edit click
   const handleEdit = (estate) => {
@@ -220,9 +228,85 @@ const RegisterEstate = () => {
   };
 
   // Handle delete estate
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this estate?")) {
-      setEstates((prev) => prev.filter((est) => est.id !== id));
+//   const handleDelete = (id) => {
+//     if (window.confirm("Are you sure you want to delete this estate?")) {
+//       setEstates((prev) => prev.filter((est) => est.id !== id));
+//     }
+//   };
+
+const [statesData, setStatesData] = useState([]);
+
+useEffect(() => {
+    const fetchStates = async () => {
+      try {
+        const response = await axios.get(`${API_BASE}/states`);
+        setStatesData(response.data);
+      } catch (error) {
+        console.error("Failed to fetch states", error);
+      }
+    };
+    fetchStates();
+  }, []);
+
+  useEffect(() => {
+    const fetchEstates = async () => {
+      try {
+        const response = await axios.get(`${API_BASE}/estates`);
+        setEstates(response.data);
+      } catch (error) {
+        console.error("Failed to fetch estates", error);
+      }
+    };
+    fetchEstates();
+  }, []);
+
+  useEffect(() => {
+    if (selectedState) {
+      const state = statesData.find((s) => s.name === selectedState);
+      setLocationOptions(state ? state.locations : []);
+      setSelectedLocation("");
+    } else {
+      setLocationOptions([]);
+      setSelectedLocation("");
+    }
+  }, [selectedState]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+  
+    const payload = {
+      state: selectedState,
+      location: selectedLocation,
+      estate_name: estateName,
+      date_registered: dateRegistered,
+      payment_date: paymentDate,
+    };
+  
+    try {
+      if (editingEstateId !== null) {
+        await axios.put(`${API_BASE}/estates/${editingEstateId}`, payload);
+        alert("Estate updated successfully!");
+      } else {
+        await axios.post(`${API_BASE}/estates`, payload);
+        alert("Estate added successfully!");
+      }
+      resetForm();
+      const res = await axios.get(`${API_BASE}/estates`);
+      setEstates(res.data);
+    } catch (error) {
+      console.error("Error submitting form", error);
+      alert("An error occurred. Please try again.");
+    }
+  };
+  
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this estate?")) return;
+    try {
+      await axios.delete(`${API_BASE}/estates/${id}`);
+      setEstates(estates.filter((est) => est.id !== id));
+    } catch (error) {
+      console.error("Error deleting estate", error);
+      alert("Failed to delete estate.");
     }
   };
 
@@ -247,7 +331,8 @@ const RegisterEstate = () => {
           <div className="col-md-4">
             <SearchableDropdown
               label="State"
-              options={statesData.map((s) => s.name)}
+            //   options={statesData.map((s) => s.name)}
+              options={statesData ? statesData.map((s) => s.name) : []}
               value={selectedState}
               onChange={setSelectedState}
               disabled={false}
